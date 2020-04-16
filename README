@@ -1,0 +1,25 @@
+Typically, VPN clients create routes to their peers to prevent loss of
+connection when e.g. a new default route is installed through the VPN.
+
+Not only is the pattern used a lot but there are also some pitfalls:
+
+- multiple destination addresses for a single hostname
+- lack of handling for when an interface goes down and traffic is
+routed differently
+- openwrt's concept for IPv6 multihome routing makes querying routes a bit weird - afaics
+
+Maybe there's a way to get this kind of thing working in netifd?
+
+Example:
+
+# before connecting, fetch the route information to the host:
+
+vpn-route-fetch vpn.gateway.org > /var/run/routes_$config
+# or
+vpn-route-fetch vpn.gateway.org br-lan > /var/run/routes_$config
+
+# then, apply the routes:
+vpn-route-apply add < /var/run/routes_$config
+
+# afterwards, likely in proto_*_teardown:
+vpn-route-apply del < /var/run/routes_$config

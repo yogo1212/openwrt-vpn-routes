@@ -1,0 +1,49 @@
+#!/bin/sh
+
+dest="$1"
+
+if [ -z "$dest" ]; then
+	echo "need a destination" >&2
+	exit 1
+fi
+
+uplink="$2"
+
+if [ -n "$uplink" ]; then
+	if echo "$uplink" | grep -q '^@'; then
+		oif="$(. /lib/functions/network.sh ; network_get_device v "${uplink#@}" ; echo "$v")"
+	else
+		oif="$uplink"
+	fi
+
+	# with openwrt's IPv6 multihome routing, oif can't be used to get routes
+	# https://bugs.openwrt.org/index.php?do=details&task_id=2933
+	first_addr6="$(ip -6 -o a show $oif | head -n 1 | sed -En 's/^.*inet6\s*([^\s]+).*$/\1/p' | cut -f1 -d'/')"
+fi
+
+for addr in $(resolveip "$dest"); do
+	fam="$(echo "$addr" | grep -q ':' && echo 6 || echo 4)"
+
+	selector=
+	if [ -n "$uplink" ]; then
+		if [ "$fam" = 4 ]; then
+			selector="oif $oif"
+		elif [ "$fam" = 6 ]; then
+			selector="from $first_addr6"
+		else
+			echo "unknown address family '$fam' for '$addr'" >&2
+			continue
+		fi
+	elif [ "$fam" = 6 ]; then
+		# TODO
+		# it's impossible to get the route to a IPv6 address without an uplink
+		# interface with openwrt's routing model. just using the default route or
+		# the first interface with a global address could result in traffic being
+		# routed somewhere it shouldn't be going, so we skip IPv6 here.
+		continue
+	fi
+
+	route="$fam,$(ip -$fam r get "$addr" $selector | head -n 1 | sed 's/uid\s*[0-9]*//')"
+
+	echo "$route"
+done
