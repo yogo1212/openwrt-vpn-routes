@@ -3,12 +3,13 @@
 # util for using routes collected by vpn-route-fetch
 
 op="${1-add}"
+table="${TABLE-main}"
 
 while read route; do
 	f="$(echo "$route" | cut -f1 -d',')"
 	r="$(echo "$route" | cut -f2 -d',')"
 
-	ip -$f r $op $r
+	ip -$f r $op $r table $table
 
 	# if the outgoing interface or the address is removed, the route is removed.
 	# to avoid traffic being routed in an undesired way, a blackhole route is
@@ -20,5 +21,5 @@ while read route; do
 	for m in via dev src metric from; do
 		r="$(echo "$r" | sed -E 's/'"$m"' +([^ ]+)//')"
 	done
-	ip -$f r $op prohibit $r metric $metric
+	ip -$f r $op prohibit $r metric $metric table $table
 done

@@ -43,7 +43,7 @@ for addr in $(resolveip "$dest"); do
 		continue
 	fi
 
-	route="$fam,$(ip -$fam r get "$addr" $selector | head -n 1 | sed 's/uid\s*[0-9]*//')"
+	route="$fam,$(ip -$fam r get "$addr" $selector | head -n 1 | sed -e 's/uid\s*[0-9]*//' -e 's/table\s*[0-9]*//')"
 
 	echo "$route"
 done
