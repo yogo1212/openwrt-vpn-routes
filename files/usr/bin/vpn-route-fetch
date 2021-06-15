@@ -24,6 +24,8 @@ fi
 for addr in $(resolveip "$dest"); do
 	fam="$(echo "$addr" | grep -q ':' && echo 6 || echo 4)"
 
+	[ "$fam" = 6 -a -z "$first_addr6" ] && continue
+
 	selector=
 	if [ -n "$uplink" ]; then
 		if [ "$fam" = 4 ]; then
