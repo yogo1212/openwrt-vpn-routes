@@ -18,7 +18,7 @@ if [ -n "$uplink" ]; then
 
 	# with openwrt's IPv6 multihome routing, oif can't be used to get routes
 	# https://bugs.openwrt.org/index.php?do=details&task_id=2933
-	first_addr6="$(ip -6 -o a show $oif | head -n 1 | sed -En 's/^.*inet6\s*([^\s]+).*$/\1/p' | cut -f1 -d'/')"
+	first_addr6="$(ip -6 -o a show $oif scope global | head -n 1 | sed -En 's/^.*inet6\s*([^\s]+).*$/\1/p' | cut -f1 -d'/')"
 fi
 
 for addr in $(resolveip "$dest"); do
