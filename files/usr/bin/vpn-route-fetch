@@ -21,7 +21,12 @@ if [ -n "$uplink" ]; then
 	first_addr6="$(ip -6 -o a show $oif scope global | head -n 1 | sed -En 's/^.*inet6\s*([^\s]+).*$/\1/p' | cut -f1 -d'/')"
 fi
 
-for addr in $(resolveip "$dest"); do
+if ! addrs="$(resolveip "$dest")"; then
+	echo "failed to look up \"$dest\""
+	exit 2
+fi
+
+for addr in $addrs; do
 	fam="$(echo "$addr" | grep -q ':' && echo 6 || echo 4)"
 
 	[ "$fam" = 6 -a -z "$first_addr6" ] && continue
