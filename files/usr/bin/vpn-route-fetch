@@ -22,7 +22,7 @@ if [ -n "$uplink" ]; then
 fi
 
 if ! addrs="$(resolveip "$dest")"; then
-	echo "failed to look up \"$dest\""
+	echo "failed to look up \"$dest\"" >&2
 	exit 2
 fi
 
